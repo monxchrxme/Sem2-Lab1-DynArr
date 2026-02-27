@@ -20,7 +20,7 @@ endif()
 add_library(project_lib
         type_info.h type_info.c
         utils.h utils.c
-        vector.h vector.c
+        dynamic_array.h dynamic_array.c
         console_utils.h console_utils.c
 )
 
