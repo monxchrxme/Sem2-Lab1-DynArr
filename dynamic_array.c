@@ -2,22 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-DynArr *dynamic_array_create(TypeInfo *type) { //TODO пользователь сам создает маллок, и передает его в инит функцию, креат функция не нужна, все что ниже маллока нужно переместить в функцию инит,
-    DynArr *da = malloc(sizeof(DynArr));
-    if (!da) {
-        fprintf(stderr, "Memory allocation failed for DynArr\n");
-        return NULL;
-    }
-
-    da->data = NULL; //TODO это перенести в функцию инит, пользователь выделяет с помощью маллок память под структуру DynArr, и передает этот указатель в функцию init, где уже инициализируются поля этой струткуры, и выделяется память под поле data
-    da->type = type;
-    da->capacity = 0;
-    da->size = 0;
-
-    return da;
-}
-
-int dynamic_array_init(DynArr *da, size_t initial_capacity) {
+int dynamic_array_init(DynArr *da, TypeInfo *type, size_t initial_capacity) {
     if (!da) {
         fprintf(stderr, "Invalid dynamic array pointer\n");
         return 0;
@@ -25,6 +10,17 @@ int dynamic_array_init(DynArr *da, size_t initial_capacity) {
 
     if (da->data != NULL) {
         fprintf(stderr, "DynArr is already initialized\n");
+        return 0;
+    }
+
+    // Initializing fields of struct
+    da->type = type;
+    da->capacity = 0;
+    da->size = 0;
+    da->data = NULL;
+
+    if (!type) {
+        fprintf(stderr, "Error: NULL TypeInfo\n");
         return 0;
     }
 
@@ -36,7 +32,6 @@ int dynamic_array_init(DynArr *da, size_t initial_capacity) {
         }
         da->capacity = initial_capacity;
     }
-
     return 1;
 }
 
@@ -51,9 +46,6 @@ void dynamic_array_destroy(DynArr *da) {
         }
         free(da->data);
     }
-
-    // Release memory from dynamic array itself
-    free(da);
 }
 
 int dynamic_array_push_back(DynArr *da, const void *elem) {
@@ -91,115 +83,91 @@ void *dynamic_array_get(const DynArr *da, size_t index) {
     return (char*)da->data + index * da->type->size;
 }
 
-DynArr *dynamic_array_map(const DynArr *da, void (*func)(void *elem)) {
-    if (!da || !func) {
-        fprintf(stderr, "Error: NULL dynamic array or function pointer\n");
-        return NULL;
+int dynamic_array_map(const DynArr *source, DynArr *result, void (*func)(void *elem)) {
+    if (!source || !result || !func) {
+        return 0;
     }
 
-    if (da->size == 0) {
-        return NULL;
+    if (result->data != NULL) {
+        return 0;
     }
 
-    DynArr *result = dynamic_array_create(da->type);
-    if (!result) {
-        return NULL;
+    if (!dynamic_array_init(result, source->type, source->size)) {
+        return 0;
     }
 
-
-    // initialize dynamic array with enough capacity
-    if (!dynamic_array_init(result, da->size)) {
-        dynamic_array_destroy(result);
-        return NULL;
-    }
-
-    for (size_t i = 0; i < da->size; i++) {
-        void *source_elem = (char*)da->data + i * da->type->size;
-
-        // count place for result
-        void *dest_elem = (char*)result->data + i * result->type->size;
-
-        // copy elem
-        da->type->copy(dest_elem, source_elem);
-
-        // use func
-        func(dest_elem);
-
+    for (size_t i = 0; i < source->size; i++) {
+        void *source_elem = (char*)source->data + i * source->type->size;
+        void *result_elem = (char*)result->data + i * result->type->size;
+        source->type->copy(result_elem, source_elem);
+        func(result_elem);
         result->size++;
     }
 
-    return result;
+    return 1;
 }
 
-DynArr *dynamic_array_where(const DynArr *da, int (*predicate)(const void *elem)) {
-    if (!da || !predicate) {
-        fprintf(stderr, "Error: NULL dynamic array or predicate function\n");
-        return NULL;
+int dynamic_array_where(const DynArr *source, DynArr *result, int (*predicate)(const void *elem)) {
+    if (!source || !result || !predicate) {
+        return 0;
     }
 
-    if (da->size == 0) {
-        return NULL;
+    if (result->data != NULL) {
+        return 0;
     }
 
-    DynArr *result = dynamic_array_create(da->type);
-    if (!result) {
-        return NULL;
+    if (!dynamic_array_init(result, source->type, 4)) {
+        return 0;
     }
 
-    if (!dynamic_array_init(result, 4)) {
-        dynamic_array_destroy(result);
-        return NULL;
-    }
-
-    for (size_t i = 0; i < da->size; i++) {
-        void* elem = (char*)da->data + i * da->type->size;
+    for (size_t i = 0; i < source->size; i++) {
+        void *elem = (char*)source->data + i * source->type->size;
         if (predicate(elem)) {
-            if (!dynamic_array_push_back(result, elem)) {
-                dynamic_array_destroy(result);
-                return NULL;
+            void *dest = (char*)result->data + result->size * result->type->size;
+            source->type->copy(dest, elem);
+            result->size++;
+
+            if (result->size == result->capacity) {
+                size_t new_capacity = result->capacity * 2;
+                void *new_data = realloc(result->data, new_capacity * result->type->size);
+                if (!new_data) {
+                    return 0;
+                }
+                result->data = new_data;
+                result->capacity = new_capacity;
             }
         }
     }
 
     if (result->size == 0) {
-        dynamic_array_destroy(result);
-        return NULL;
+        return 0;
     }
-
-    return result;
+    return 1;
 }
 
-DynArr *dynamic_array_concat(const DynArr *da1, const DynArr *da2) {
-    if (!da1 || !da2) {
-        fprintf(stderr, "Error: NULL dynamic array pointer\n");
-        return NULL;
+int dynamic_array_concat(const DynArr *da1, const DynArr *da2, DynArr *result) {
+    if (!da1 || !da2 || !result) {
+        return 0;
     }
 
-    // Check type compatibility
+    if (result->data != NULL) {
+        return 0;
+    }
+
     if (da1->type != da2->type) {
-        fprintf(stderr, "Error: Type mismatch. Cannot concatenate dynamic array of different types\n");
-        return NULL;
+        return 0;
     }
 
-    DynArr *result = dynamic_array_create(da1->type);
-    if (!result) {
-        return NULL;
+    if (!dynamic_array_init(result, da1->type, da1->size + da2->size)) {
+        return 0;
     }
 
-    // initialize dynamic array with capacity equal sum(da1, da2)
-    if (!dynamic_array_init(result, da1->size + da2->size)) {
-        dynamic_array_destroy(result);
-        return NULL;
-    }
-
-    // Copy elements from first dynamic array
     for (size_t i = 0; i < da1->size; i++) {
         void *source_elem = (char*)da1->data + i * da1->type->size;
         void *dest_elem = (char*)result->data + i * result->type->size;
         da1->type->copy(dest_elem, source_elem);
     }
 
-    // Copy elements from second dynamic array
     for (size_t i = 0; i < da2->size; i++) {
         void *source_elem = (char*)da2->data + i * da2->type->size;
         void *dest_elem = (char*)result->data + (da1->size + i) * result->type->size;
@@ -207,5 +175,5 @@ DynArr *dynamic_array_concat(const DynArr *da1, const DynArr *da2) {
     }
 
     result->size = da1->size + da2->size;
-    return result;
+    return 1;
 }
