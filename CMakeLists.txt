@@ -43,7 +43,7 @@ target_link_libraries(laba_1 project_lib)
 
 # Добавляем тесты
 add_executable(test_laba_1
-        test/test_vector.c
+        test/test_dynamic_array.c
         ${UNITY_DIR}/unity.c
 )
 

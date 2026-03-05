@@ -1,7 +1,7 @@
 #ifndef TYPE_INFO_H
 #define TYPE_INFO_H
 
-#include <stdlib.h>
+#include <stddef.h>
 
 typedef struct {
     size_t size;                                               // Element size

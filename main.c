@@ -8,16 +8,16 @@
 
 // Global not dynamic arrays for storage dynamic arrays
 #define MAX_DYNAMIC_ARRAYS 10
-dynArr *string_dynamic_arrays[MAX_DYNAMIC_ARRAYS] = {NULL};
-dynArr *function_dynamic_arrays[MAX_DYNAMIC_ARRAYS] = {NULL};
+DynArr *string_dynamic_arrays[MAX_DYNAMIC_ARRAYS] = {NULL};
+DynArr *function_dynamic_arrays[MAX_DYNAMIC_ARRAYS] = {NULL};
 int current_string_dyn_arr = 0;
-int current_function_din_arr = 0;
+int current_function_dyn_arr = 0;
 
 // Menu func prototypes
 void main_menu();
 void string_operations_menu();
 void function_operations_menu();
-void display_dyn_arr(const dynArr* da, int is_string);
+void display_dyn_arr(const DynArr* da, int is_string);
 void clear_input_buffer();
 
 /**
@@ -33,7 +33,7 @@ void main_menu() {
         printf("============================================\n");
         printf("Текущие динамические массивы:\n");
         printf("  Строки: массив %d\n", current_string_dyn_arr);
-        printf("  Функции: массив %d\n", current_function_din_arr);
+        printf("  Функции: массив %d\n", current_function_dyn_arr);
         printf("\n");
         printf("1. Работа со строками\n");
         printf("2. Работа с функциями\n");
@@ -93,7 +93,7 @@ void main_menu() {
                         if (function_dynamic_arrays[i] == NULL) {
                             function_dynamic_arrays[i] = dynamic_array_create(get_function_type_info());
                             dynamic_array_init(function_dynamic_arrays[i], 4);
-                            current_function_din_arr = i;
+                            current_function_dyn_arr = i;
                             printf("Создан новый массив функций #%d\n", i);
                             break;
                         }
@@ -127,7 +127,7 @@ void main_menu() {
                     }
                     printf("Выберите номер массива: ");
                     if (scanf("%d", &sub_choice) == 1 && sub_choice >= 0 && sub_choice < MAX_DYNAMIC_ARRAYS && function_dynamic_arrays[sub_choice] != NULL) {
-                        current_function_din_arr = sub_choice;
+                        current_function_dyn_arr = sub_choice;
                         printf("Переключено на массив функций #%d\n", sub_choice);
                     } else {
                         printf("Неверный выбор.\n");
@@ -205,7 +205,7 @@ void main_menu() {
                             function_dynamic_arrays[index] = NULL;
                             printf("Массив функций #%d уничтожен.\n", index);
 
-                            if (current_function_din_arr == index) {
+                            if (current_function_dyn_arr == index) {
                                 int new_index = -1;
                                 for (int i = 0; i < MAX_DYNAMIC_ARRAYS; i++) {
                                     if (function_dynamic_arrays[i] != NULL) {
@@ -217,13 +217,13 @@ void main_menu() {
                                     function_dynamic_arrays[0] = dynamic_array_create(get_function_type_info());
                                     if (function_dynamic_arrays[0]) {
                                         dynamic_array_init(function_dynamic_arrays[0], 4);
-                                        current_function_din_arr = 0;
+                                        current_function_dyn_arr = 0;
                                         printf("Текущий массив функций больше не существует, создан новый массив 0.\n");
                                     } else {
                                         printf("Ошибка создания нового массива функций.\n");
                                     }
                                 } else {
-                                    current_function_din_arr = new_index;
+                                    current_function_dyn_arr = new_index;
                                     printf("Текущий массив функций установлен на #%d.\n", new_index);
                                 }
                             }
@@ -254,8 +254,8 @@ void main_menu() {
             default:
                 printf("Неверный выбор. Пожалуйста, попробуйте снова.\n");
         }
-    }
-}
+    } // while
+} // funct itself
 
 /**
  * Menu operations with strings
@@ -340,12 +340,12 @@ void string_operations_menu() {
                 clear_input_buffer();
 
                 if (func_choice == 1) {
-                    dynArr *result = dynamic_array_map(string_dynamic_arrays[current_string_dyn_arr], to_uppercase);
+                    DynArr *result = dynamic_array_map(string_dynamic_arrays[current_string_dyn_arr], to_uppercase);
                     printf("Результат применения map (в верхний регистр):\n");
                     display_dyn_arr(result, 1);
                     dynamic_array_destroy(result);
                 } else if (func_choice == 2) {
-                    dynArr *result = dynamic_array_map(string_dynamic_arrays[current_string_dyn_arr], to_lowercase);
+                    DynArr *result = dynamic_array_map(string_dynamic_arrays[current_string_dyn_arr], to_lowercase);
                     printf("Результат применения map (в нижний регистр):\n");
                     display_dyn_arr(result, 1);
                     dynamic_array_destroy(result);
@@ -370,12 +370,12 @@ void string_operations_menu() {
                 clear_input_buffer();
 
                 if (func_choice == 1) {
-                    dynArr *result = dynamic_array_where(string_dynamic_arrays[current_string_dyn_arr], is_long_string);
+                    DynArr *result = dynamic_array_where(string_dynamic_arrays[current_string_dyn_arr], is_long_string);
                     printf("Результат применения where (длина > 10):\n");
                     display_dyn_arr(result, 1);
                     dynamic_array_destroy(result);
                 } else if (func_choice == 2) {
-                    dynArr *result = dynamic_array_where(string_dynamic_arrays[current_string_dyn_arr], is_short_string);
+                    DynArr *result = dynamic_array_where(string_dynamic_arrays[current_string_dyn_arr], is_short_string);
                     printf("Результат применения where (длина < 10):\n");
                     display_dyn_arr(result, 1);
                     dynamic_array_destroy(result);
@@ -402,7 +402,7 @@ void string_operations_menu() {
                 }
                 clear_input_buffer();
 
-                dynArr *result = dynamic_array_concat(string_dynamic_arrays[current_string_dyn_arr], string_dynamic_arrays[target]);
+                DynArr *result = dynamic_array_concat(string_dynamic_arrays[current_string_dyn_arr], string_dynamic_arrays[target]);
                 if (result) {
                     printf("Результат конкатенации:\n");
                     display_dyn_arr(result, 1);
@@ -435,13 +435,13 @@ void function_operations_menu() {
     while (1) {
         printf("\n");
         printf("============================================\n");
-        printf("      РАБОТА С МАССИВОМ ФУНКЦИЙ #%d\n", current_function_din_arr);
+        printf("      РАБОТА С МАССИВОМ ФУНКЦИЙ #%d\n", current_function_dyn_arr);
         printf("============================================\n");
 
         // Show array content
-        if (function_dynamic_arrays[current_function_din_arr] && function_dynamic_arrays[current_function_din_arr]->size > 0) {
+        if (function_dynamic_arrays[current_function_dyn_arr] && function_dynamic_arrays[current_function_dyn_arr]->size > 0) {
             printf("Текущее содержимое массива:\n");
-            display_dyn_arr(function_dynamic_arrays[current_function_din_arr], 0);
+            display_dyn_arr(function_dynamic_arrays[current_function_dyn_arr], 0);
         } else {
             printf("Массив пуст\n");
         }
@@ -480,21 +480,21 @@ void function_operations_menu() {
                 }
                 clear_input_buffer();
 
-                if (func_choice == 1) {
-                    dynamic_array_push_back(function_dynamic_arrays[current_function_din_arr], &example_function);
+                if (func_choice == 1) { //TODO набор указателей на функции в массиве и вызывать здесь
+                    dynamic_array_push_back(function_dynamic_arrays[current_function_dyn_arr], &example_function);
                     printf("Функция example_function добавлена.\n");
                 } else if (func_choice == 2) {
-                    dynamic_array_push_back(function_dynamic_arrays[current_function_din_arr], &to_uppercase);
+                    dynamic_array_push_back(function_dynamic_arrays[current_function_dyn_arr], &to_uppercase);
                     printf("Функция to_uppercase добавлена.\n");
                 } else if (func_choice == 3) {
-                    dynamic_array_push_back(function_dynamic_arrays[current_function_din_arr], &to_lowercase);
+                    dynamic_array_push_back(function_dynamic_arrays[current_function_dyn_arr], &to_lowercase);
                     printf("Функция to_lowercase добавлена.\n");
                 } else if (func_choice == 4) {
-                    dynamic_array_push_back(function_dynamic_arrays[current_function_din_arr], &print_function_address);
+                    dynamic_array_push_back(function_dynamic_arrays[current_function_dyn_arr], &print_function_address);
                     printf("Функция print_function_address добавлена.\n");
                 } else if (func_choice == 5) {
                     void *null_func = NULL;
-                    dynamic_array_push_back(function_dynamic_arrays[current_function_din_arr], &null_func);
+                    dynamic_array_push_back(function_dynamic_arrays[current_function_dyn_arr], &null_func);
                     printf("NULL функция добавлена.\n");
                 } else {
                     printf("Неверный выбор функции.\n");
@@ -516,7 +516,7 @@ void function_operations_menu() {
                 clear_input_buffer();
 
                 if (func_choice == 1) {
-                    dynArr *result = dynamic_array_map(function_dynamic_arrays[current_function_din_arr],
+                    DynArr *result = dynamic_array_map(function_dynamic_arrays[current_function_dyn_arr],
                                                        print_function_address);
                     dynamic_array_destroy(result);
                 } else if (func_choice != 2) {
@@ -539,7 +539,7 @@ void function_operations_menu() {
                 clear_input_buffer();
 
                 if (func_choice == 1) {
-                    dynArr *result = dynamic_array_where(function_dynamic_arrays[current_function_din_arr],
+                    DynArr *result = dynamic_array_where(function_dynamic_arrays[current_function_dyn_arr],
                                                          is_non_null_function);
                     printf("Результат применения where (ненулевые функции):\n");
                     display_dyn_arr(result, 0);
@@ -552,7 +552,7 @@ void function_operations_menu() {
             case 4: {
                 printf("Доступные массивы функций для конкатенации:\n");
                 for (int i = 0; i < MAX_DYNAMIC_ARRAYS; i++) {
-                    if (i != current_function_din_arr && function_dynamic_arrays[i] != NULL) {
+                    if (i != current_function_dyn_arr && function_dynamic_arrays[i] != NULL) {
                         printf("  %d: размер = %zu\n", i, function_dynamic_arrays[i]->size);
                     }
                 }
@@ -560,14 +560,14 @@ void function_operations_menu() {
                 int target;
                 printf("Введите номер массива для конкатенации: ");
                 if (scanf("%d", &target) != 1 || target < 0 || target >= MAX_DYNAMIC_ARRAYS ||
-                    function_dynamic_arrays[target] == NULL || target == current_function_din_arr) {
+                    function_dynamic_arrays[target] == NULL || target == current_function_dyn_arr) {
                     printf("Неверный выбор.\n");
                     clear_input_buffer();
                     break;
                 }
                 clear_input_buffer();
 
-                dynArr *result = dynamic_array_concat(function_dynamic_arrays[current_function_din_arr],
+                DynArr *result = dynamic_array_concat(function_dynamic_arrays[current_function_dyn_arr],
                                                       function_dynamic_arrays[target]);
                 if (result) {
                     printf("Результат конкатенации:\n");
@@ -577,9 +577,9 @@ void function_operations_menu() {
                 break;
             }
             case 5:
-                if (function_dynamic_arrays[current_function_din_arr] && function_dynamic_arrays[current_function_din_arr]->size > 0) {
+                if (function_dynamic_arrays[current_function_dyn_arr] && function_dynamic_arrays[current_function_dyn_arr]->size > 0) {
                     printf("Содержимое массива:\n");
-                    display_dyn_arr(function_dynamic_arrays[current_function_din_arr], 0);
+                    display_dyn_arr(function_dynamic_arrays[current_function_dyn_arr], 0);
                 } else {
                     printf("Массив пуст\n");
                 }
@@ -594,10 +594,10 @@ void function_operations_menu() {
 
 /**
  * Show array content function
- * @param da dynArr to show
+ * @param da DynArr to show
  * @param is_string 1 for str, 0 for func
  */
-void display_dyn_arr(const dynArr *da, int is_string) {
+void display_dyn_arr(const DynArr *da, int is_string) {
     if (!da || da->size == 0) {
         printf("Массив пуст\n");
         return;

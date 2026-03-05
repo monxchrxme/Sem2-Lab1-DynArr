@@ -2,36 +2,36 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-dynArr *dynamic_array_create(TypeInfo *type) {
-    dynArr *vec = malloc(sizeof(dynArr));
-    if (!vec) {
-        fprintf(stderr, "Memory allocation failed for dynArr\n");
+DynArr *dynamic_array_create(TypeInfo *type) { //TODO пользователь сам создает маллок, и передает его в инит функцию, креат функция не нужна, все что ниже маллока нужно переместить в функцию инит,
+    DynArr *da = malloc(sizeof(DynArr));
+    if (!da) {
+        fprintf(stderr, "Memory allocation failed for DynArr\n");
         return NULL;
     }
 
-    vec->data = NULL;
-    vec->type = type;
-    vec->capacity = 0;
-    vec->size = 0;
+    da->data = NULL; //TODO это перенести в функцию инит, пользователь выделяет с помощью маллок память под структуру DynArr, и передает этот указатель в функцию init, где уже инициализируются поля этой струткуры, и выделяется память под поле data
+    da->type = type;
+    da->capacity = 0;
+    da->size = 0;
 
-    return vec;
+    return da;
 }
 
-int dynamic_array_init(dynArr *da, size_t initial_capacity) {
+int dynamic_array_init(DynArr *da, size_t initial_capacity) {
     if (!da) {
-        fprintf(stderr, "Invalid vector pointer\n");
+        fprintf(stderr, "Invalid dynamic array pointer\n");
         return 0;
     }
 
     if (da->data != NULL) {
-        fprintf(stderr, "dynArr is already initialized\n");
+        fprintf(stderr, "DynArr is already initialized\n");
         return 0;
     }
 
     if (initial_capacity > 0) {
         da->data = calloc(initial_capacity, da->type->size); // to initialize memory with 0
         if (!da->data) {
-            fprintf(stderr, "Memory allocation failed for vector data\n");
+            fprintf(stderr, "Memory allocation failed for dynamic array data\n");
             return 0;
         }
         da->capacity = initial_capacity;
@@ -40,7 +40,7 @@ int dynamic_array_init(dynArr *da, size_t initial_capacity) {
     return 1;
 }
 
-void dynamic_array_destroy(dynArr *da) {
+void dynamic_array_destroy(DynArr *da) {
     if (!da) return;
 
     // Release memory from elements
@@ -52,11 +52,11 @@ void dynamic_array_destroy(dynArr *da) {
         free(da->data);
     }
 
-    // Release memory from vector itself
+    // Release memory from dynamic array itself
     free(da);
 }
 
-int dynamic_array_push_back(dynArr *da, const void *elem) {
+int dynamic_array_push_back(DynArr *da, const void *elem) {
     if (!da || !elem) return 0;
 
     // if array is full increase capacity
@@ -65,7 +65,7 @@ int dynamic_array_push_back(dynArr *da, const void *elem) {
         void *new_data = realloc(da->data, new_capacity * da->type->size);
 
         if (!new_data) {
-            fprintf(stderr, "Memory allocation failed for vector data\n");
+            fprintf(stderr, "Memory allocation failed for dynamic array data\n");
             return 0;
         }
 
@@ -83,7 +83,7 @@ int dynamic_array_push_back(dynArr *da, const void *elem) {
     return 1;
 }
 
-void *dynamic_array_get(const dynArr *da, size_t index) {
+void *dynamic_array_get(const DynArr *da, size_t index) {
     if (!da || index >= da->size) {
         fprintf(stderr, "Index out of bounds\n");
         return NULL;
@@ -91,9 +91,9 @@ void *dynamic_array_get(const dynArr *da, size_t index) {
     return (char*)da->data + index * da->type->size;
 }
 
-dynArr *dynamic_array_map(const dynArr *da, void (*func)(void *elem)) {
+DynArr *dynamic_array_map(const DynArr *da, void (*func)(void *elem)) {
     if (!da || !func) {
-        fprintf(stderr, "Error: NULL vector or function pointer\n");
+        fprintf(stderr, "Error: NULL dynamic array or function pointer\n");
         return NULL;
     }
 
@@ -101,13 +101,13 @@ dynArr *dynamic_array_map(const dynArr *da, void (*func)(void *elem)) {
         return NULL;
     }
 
-    dynArr *result = dynamic_array_create(da->type);
+    DynArr *result = dynamic_array_create(da->type);
     if (!result) {
         return NULL;
     }
 
 
-    // initialize vector with enough capacity
+    // initialize dynamic array with enough capacity
     if (!dynamic_array_init(result, da->size)) {
         dynamic_array_destroy(result);
         return NULL;
@@ -131,9 +131,9 @@ dynArr *dynamic_array_map(const dynArr *da, void (*func)(void *elem)) {
     return result;
 }
 
-dynArr *dynamic_array_where(const dynArr *da, int (*predicate)(const void *elem)) {
+DynArr *dynamic_array_where(const DynArr *da, int (*predicate)(const void *elem)) {
     if (!da || !predicate) {
-        fprintf(stderr, "Error: NULL vector or predicate function\n");
+        fprintf(stderr, "Error: NULL dynamic array or predicate function\n");
         return NULL;
     }
 
@@ -141,7 +141,7 @@ dynArr *dynamic_array_where(const dynArr *da, int (*predicate)(const void *elem)
         return NULL;
     }
 
-    dynArr *result = dynamic_array_create(da->type);
+    DynArr *result = dynamic_array_create(da->type);
     if (!result) {
         return NULL;
     }
@@ -169,37 +169,37 @@ dynArr *dynamic_array_where(const dynArr *da, int (*predicate)(const void *elem)
     return result;
 }
 
-dynArr *dynamic_array_concat(const dynArr *da1, const dynArr *da2) {
+DynArr *dynamic_array_concat(const DynArr *da1, const DynArr *da2) {
     if (!da1 || !da2) {
-        fprintf(stderr, "Error: NULL vector pointer\n");
+        fprintf(stderr, "Error: NULL dynamic array pointer\n");
         return NULL;
     }
 
     // Check type compatibility
     if (da1->type != da2->type) {
-        fprintf(stderr, "Error: Type mismatch. Cannot concatenate vectors of different types\n");
+        fprintf(stderr, "Error: Type mismatch. Cannot concatenate dynamic array of different types\n");
         return NULL;
     }
 
-    dynArr *result = dynamic_array_create(da1->type);
+    DynArr *result = dynamic_array_create(da1->type);
     if (!result) {
         return NULL;
     }
 
-    // initialize vector with capacity equal sum(da1, da2)
+    // initialize dynamic array with capacity equal sum(da1, da2)
     if (!dynamic_array_init(result, da1->size + da2->size)) {
         dynamic_array_destroy(result);
         return NULL;
     }
 
-    // Copy elements from first vector
+    // Copy elements from first dynamic array
     for (size_t i = 0; i < da1->size; i++) {
         void *source_elem = (char*)da1->data + i * da1->type->size;
         void *dest_elem = (char*)result->data + i * result->type->size;
         da1->type->copy(dest_elem, source_elem);
     }
 
-    // Copy elements from second vector
+    // Copy elements from second dynamic array
     for (size_t i = 0; i < da2->size; i++) {
         void *source_elem = (char*)da2->data + i * da2->type->size;
         void *dest_elem = (char*)result->data + (da1->size + i) * result->type->size;
