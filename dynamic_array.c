@@ -8,11 +8,6 @@ int dynamic_array_init(DynArr *da, TypeInfo *type, size_t initial_capacity) {
         return 0;
     }
 
-    if (da->data != NULL) {
-        fprintf(stderr, "DynArr is already initialized\n");
-        return 0;
-    }
-
     // Initializing fields of struct
     da->type = type;
     da->capacity = 0;
@@ -88,10 +83,6 @@ int dynamic_array_map(const DynArr *source, DynArr *result, void (*func)(void *e
         return 0;
     }
 
-    if (result->data != NULL) {
-        return 0;
-    }
-
     if (!dynamic_array_init(result, source->type, source->size)) {
         return 0;
     }
@@ -109,10 +100,6 @@ int dynamic_array_map(const DynArr *source, DynArr *result, void (*func)(void *e
 
 int dynamic_array_where(const DynArr *source, DynArr *result, int (*predicate)(const void *elem)) {
     if (!source || !result || !predicate) {
-        return 0;
-    }
-
-    if (result->data != NULL) {
         return 0;
     }
 
@@ -138,19 +125,11 @@ int dynamic_array_where(const DynArr *source, DynArr *result, int (*predicate)(c
             }
         }
     }
-
-    if (result->size == 0) {
-        return 0;
-    }
     return 1;
 }
 
 int dynamic_array_concat(const DynArr *da1, const DynArr *da2, DynArr *result) {
     if (!da1 || !da2 || !result) {
-        return 0;
-    }
-
-    if (result->data != NULL) {
         return 0;
     }
 

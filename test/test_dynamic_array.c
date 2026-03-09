@@ -26,10 +26,12 @@ void tearDown(void) {
     if (string_dyn_arr) {
         dynamic_array_destroy(string_dyn_arr);
         free(string_dyn_arr);
+        string_dyn_arr = NULL;
     }
     if (function_dyn_arr) {
         dynamic_array_destroy(function_dyn_arr);
         free(function_dyn_arr);
+        function_dyn_arr = NULL;
     }
 }
 
@@ -81,7 +83,6 @@ void test_string_dyn_arr_push_back(void) {
 
 // Test 3: Checking the increase in DynArr capacity
 void test_string_dyn_arr_capacity_increase(void) {
-    // Добавляем 4 строки (текущая емкость 4)
     add_string(string_dyn_arr, "1");
     add_string(string_dyn_arr, "2");
     add_string(string_dyn_arr, "3");
@@ -121,7 +122,7 @@ void test_string_dyn_arr_where_long_strings(void) {
 
     DynArr *result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(result);
-    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), 4));
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), 4));
 
     TEST_ASSERT_TRUE(dynamic_array_where(string_dyn_arr, result, is_long_string));
 
@@ -139,7 +140,7 @@ void test_string_dyn_arr_where_short_strings(void) {
 
     DynArr *result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(result);
-    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), 4));
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), 4));
 
     TEST_ASSERT_TRUE(dynamic_array_where(string_dyn_arr, result, is_short_string));
 
@@ -162,7 +163,7 @@ void test_string_dyn_arr_concatenation(void) {
 
     DynArr *result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(result);
-    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), string_dyn_arr->size + da2->size));
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), string_dyn_arr->size + da2->size));
 
     TEST_ASSERT_TRUE(dynamic_array_concat(string_dyn_arr, da2, result));
 
@@ -221,7 +222,7 @@ void test_function_dyn_arr_map(void) {
 
     DynArr *result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(result);
-    TEST_ASSERT_TRUE(dynamic_array_init(result, get_function_type_info(), function_dyn_arr->size));
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_function_type_info(), function_dyn_arr->size));
 
     TEST_ASSERT_TRUE(dynamic_array_map(function_dyn_arr, result, print_function_address));
 
@@ -238,7 +239,7 @@ void test_function_dyn_arr_where_non_null(void) {
 
     DynArr *result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(result);
-    TEST_ASSERT_TRUE(dynamic_array_init(result, get_function_type_info(), 4));
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_function_type_info(), 4));
 
     TEST_ASSERT_TRUE(dynamic_array_where(function_dyn_arr, result, is_non_null_function));
 
@@ -259,21 +260,35 @@ void test_empty_dyn_arr_operations(void) {
     TEST_ASSERT_EQUAL(0, empty_da->size);
     TEST_ASSERT_EQUAL(0, empty_da->capacity);
 
+    DynArr *result = malloc(sizeof(DynArr));
+    TEST_ASSERT_NOT_NULL(result);
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), 0));
+    TEST_ASSERT_TRUE(dynamic_array_map(empty_da, result, to_uppercase));
+    dynamic_array_destroy(result);
+    free(result);
+
+    result = malloc(sizeof(DynArr));
+    TEST_ASSERT_NOT_NULL(result);
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), 0));
+    TEST_ASSERT_TRUE(dynamic_array_where(empty_da, result, is_long_string));
+    dynamic_array_destroy(result);
+    free(result);
+
     add_string(string_dyn_arr, "Test");
 
-    DynArr *concat_result = malloc(sizeof(DynArr));
-    TEST_ASSERT_NOT_NULL(concat_result);
-    TEST_ASSERT_TRUE(dynamic_array_init(concat_result, get_string_type_info(), string_dyn_arr->size));
+    result = malloc(sizeof(DynArr));
+    TEST_ASSERT_NOT_NULL(result);
+//    TEST_ASSERT_TRUE(dynamic_array_init(result, get_string_type_info(), string_dyn_arr->size));
 
-    TEST_ASSERT_TRUE(dynamic_array_concat(empty_da, string_dyn_arr, concat_result));
+    TEST_ASSERT_TRUE(dynamic_array_concat(empty_da, string_dyn_arr, result));
 
-    TEST_ASSERT_EQUAL(1, concat_result->size);
-    assert_string_dyn_arr_content(concat_result, 0, "Test");
+    TEST_ASSERT_EQUAL(1, result->size);
+    assert_string_dyn_arr_content(result, 0, "Test");
 
     dynamic_array_destroy(empty_da);
     free(empty_da);
-    dynamic_array_destroy(concat_result);
-    free(concat_result);
+    dynamic_array_destroy(result);
+    free(result);
 }
 
 // Test 14: Checking for correct memory release
@@ -282,12 +297,12 @@ void test_memory_leaks(void) {
 
     DynArr *map_result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(map_result);
-    TEST_ASSERT_TRUE(dynamic_array_init(map_result, get_string_type_info(), string_dyn_arr->size));
+//    TEST_ASSERT_TRUE(dynamic_array_init(map_result, get_string_type_info(), string_dyn_arr->size));
     TEST_ASSERT_TRUE(dynamic_array_map(string_dyn_arr, map_result, to_uppercase));
 
     DynArr *where_result = malloc(sizeof(DynArr));
     TEST_ASSERT_NOT_NULL(where_result);
-    TEST_ASSERT_TRUE(dynamic_array_init(where_result, get_string_type_info(), 4));
+//    TEST_ASSERT_TRUE(dynamic_array_init(where_result, get_string_type_info(), 4));
     TEST_ASSERT_TRUE(dynamic_array_where(string_dyn_arr, where_result, is_long_string));
 
     dynamic_array_destroy(map_result);
