@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "vector3d.h"
 
 // Global not dynamic arrays for storage dynamic arrays
 #define MAX_DYNAMIC_ARRAYS 10
@@ -19,6 +20,7 @@ void string_operations_menu();
 void function_operations_menu();
 void display_dyn_arr(const DynArr *da, int is_string);
 void clear_input_buffer();
+void vector3d_comparison_menu();
 
 /**
  * Основное меню программы
@@ -38,7 +40,8 @@ void main_menu() {
         printf("1. Работа со строками\n");
         printf("2. Работа с функциями\n");
         printf("3. Управление динамическими массивами\n");
-        printf("4. Выход\n");
+        printf("4. БОНУС: сравнение трехмерных векторов по норме\n");
+        printf("5. Выход\n");
         printf("Выберите опцию: ");
 
         if (scanf("%d", &choice) != 1) {
@@ -241,6 +244,9 @@ void main_menu() {
                 break;
             }
             case 4:
+                vector3d_comparison_menu();
+                break;
+            case 5:
                 // Release all memory before exit
                 for (int i = 0; i < MAX_DYNAMIC_ARRAYS; i++) {
                     if (string_dynamic_arrays[i]) {
@@ -641,6 +647,159 @@ void function_operations_menu() {
                 return;
             default:
                 printf("Неверный выбор. Пожалуйста, попробуйте снова.\n");
+        }
+    }
+}
+
+/**
+ * Меню сравнения трёхмерных векторов по норме
+ */
+void vector3d_comparison_menu() {
+    int choice;
+    while (1) {
+        printf("\n");
+        printf("============================================\n");
+        printf("   БОНУС: СРАВНЕНИЕ 3D ВЕКТОРОВ ПО НОРМЕ\n");
+        printf("============================================\n");
+        printf("1. Создать и сравнить векторы из строк\n");
+        printf("2. Создать и сравнить векторы из функций\n");
+        printf("3. Вернуться в главное меню\n");
+        printf("Выберите опцию: ");
+        if (scanf("%d", &choice) != 1) {
+            printf("Ошибка ввода.\n");
+            clear_input_buffer();
+            continue;
+        }
+        clear_input_buffer();
+
+        switch (choice) {
+            case 1: {
+                Vector3D vec1, vec2;
+                vector3d_init(&vec1, get_string_type_info());
+                vector3d_init(&vec2, get_string_type_info());
+
+                printf("\n--- Вектор 1 (3 строки) ---\n");
+                for (int i = 0; i < 3; i++) {
+                    char buffer[256];
+                    printf("Элемент %d: ", i);
+                    fgets(buffer, sizeof(buffer), stdin);
+                    size_t len = strlen(buffer);
+                    if (len > 0 && buffer[len-1] == '\n') {
+                        buffer[len-1] = '\0';
+                    }
+                    char *str = malloc(strlen(buffer) + 1);
+                    if (str) {
+                        strcpy(str, buffer);
+                        vector3d_set(&vec1, i, str);
+                    }
+                }
+
+                printf("\n--- Вектор 2 (3 строки) ---\n");
+                for (int i = 0; i < 3; i++) {
+                    char buffer[256];
+                    printf("Элемент %d: ", i);
+                    fgets(buffer, sizeof(buffer), stdin);
+                    size_t len = strlen(buffer);
+                    if (len > 0 && buffer[len-1] == '\n') {
+                        buffer[len-1] = '\0';
+                    }
+                    char *str = malloc(strlen(buffer) + 1);
+                    if (str) {
+                        strcpy(str, buffer);
+                        vector3d_set(&vec2, i, str);
+                    }
+                }
+
+                printf("\n--- Результат сравнения ---\n");
+                int cmp = vector3d_compare_by_normal(&vec1, &vec2);
+                if (cmp < 0) {
+                    printf("Вектор 1 < Вектор 2 (норма вектора 1 меньше)\n");
+                } else if (cmp > 0) {
+                    printf("Вектор 1 > Вектор 2 (норма вектора 1 больше)\n");
+                } else {
+                    printf("Вектора равны (нормы и элементы совпадают)\n");
+                }
+
+                vector3d_destroy(&vec1);
+                vector3d_destroy(&vec2);
+                break;
+            }
+            case 2: {
+                Vector3D vec1, vec2;
+                vector3d_init(&vec1, get_function_type_info());
+                vector3d_init(&vec2, get_function_type_info());
+
+                printf("\n--- Вектор 1 (3 функции) ---\n");
+                for (int i = 0; i < 3; i++) {
+                    printf("Функция %d:\n", i);
+                    printf("  1. to_uppercase\n");
+                    printf("  2. to_lowercase\n");
+                    printf("  3. example_function\n");
+                    printf("  4. print_function_address\n");
+                    printf("  5. NULL\n");
+                    printf("Выберите: ");
+                    int func_choice;
+                    if (scanf("%d", &func_choice) != 1) {
+                        clear_input_buffer();
+                        i--;
+                        continue;
+                    }
+                    clear_input_buffer();
+
+                    void (*func)(void*) = NULL;
+                    switch (func_choice) {
+                        case 1: func = to_uppercase; break;
+                        case 2: func = to_lowercase; break;
+                        case 3: func = example_function; break;
+                        case 4: func = print_function_address; break;
+                        default: func = NULL; break;
+                    }
+                    vector3d_set(&vec1, i, func);
+                }
+
+                printf("\n--- Вектор 2 (3 функции) ---\n");
+                for (int i = 0; i < 3; i++) {
+                    printf("Функция %d:\n", i);
+                    printf("  1. to_uppercase\n");
+                    printf("  2. to_lowercase\n");
+                    printf("  3. example_function\n");
+                    printf("  4. print_function_address\n");
+                    printf("  5. NULL\n");
+                    printf("Выберите: ");
+                    int func_choice;
+                    if (scanf("%d", &func_choice) != 1) {
+                        clear_input_buffer();
+                        i--;
+                        continue;
+                    }
+                    clear_input_buffer();
+
+                    void (*func)(void*) = NULL;
+                    switch (func_choice) {
+                        case 1: func = to_uppercase; break;
+                        case 2: func = to_lowercase; break;
+                        case 3: func = example_function; break;
+                        case 4: func = print_function_address; break;
+                        default: func = NULL; break;
+                    }
+                    vector3d_set(&vec2, i, func);
+                }
+
+                printf("\n--- Результат сравнения ---\n");
+                int cmp = vector3d_compare_by_normal(&vec1, &vec2);
+                if (cmp < 0) {
+                    printf("Вектор 1 < Вектор 2 (меньше ненулевых функций)\n");
+                } else if (cmp > 0) {
+                    printf("Вектор 1 > Вектор 2 (больше ненулевых функций)\n");
+                } else {
+                    printf("Вектора равны (одинаковое количество ненулевых функций)\n");
+                }
+                break;
+            }
+            case 3:
+                return;
+            default:
+                printf("Неверный выбор.\n");
         }
     }
 }

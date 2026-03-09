@@ -22,6 +22,7 @@ add_library(project_lib
         utils.h utils.c
         dynamic_array.h dynamic_array.c
         console_utils.h console_utils.c
+        vector3d.h vector3d.c
 )
 
 # Устанавливаем свойства библиотеки
