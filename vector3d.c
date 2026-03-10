@@ -31,7 +31,7 @@ double vector3d_normal(const Vector3D *vec) {
             }
                 // Для функций: 1 если не NULL
             else if (vec->type == get_function_type_info()) {
-                void (*func)(void*) = (void (*)(void*))vec->elements[i];
+                void (*func)(void*) = (void(*)(void*))vec->elements[i];
                 if (func) {
                     sum += 1.0;
                 }
